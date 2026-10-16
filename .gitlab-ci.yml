@@ -1,0 +1,22 @@
+# db-schema CI — 스키마 마이그레이션은 infra-ci 의 Flyway 템플릿으로 (런북 5-B-2)
+#   MR   : flyway:lint
+#   main : flyway:driver · flyway:tenants → flyway:info → flyway:migrate (수동 버튼)
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+stages: [lint, prepare, info, migrate]
+
+variables:
+  DB_HOST: tetra-dev-mysql.clm24mykstr4.ap-northeast-2.rds.amazonaws.com # SSM /tetra/dev/rds/endpoint 와 같은 값
+  # FLYWAY_PASSWORD 는 프로젝트 CI/CD 변수(Protected · Masked and hidden)
+
+include:
+  - project: tetra/infra/infra-ci
+    ref: v0.1.0
+    file: templates/flyway.yml
